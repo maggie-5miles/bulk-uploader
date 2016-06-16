@@ -9,23 +9,41 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by ying on 19/4/16.
  */
 public class Main {
+  private static Logger logger = LogManager.getLogger("ProcessLog");
+  private static Logger loggerErrorFormat = LogManager.getLogger("Error.Format");
+  private static Logger loggerErrorResponse = LogManager.getLogger("Error.Response");
 
-  private static final int UPLOAD_BATCH_COUNT = 10;
   private static final String SEPARATOR = ",";
 
   private static final String REQUEST_URL = "https://cm.g.doubleclick.net/upload?nid=";
   // Gzip of data shorter than this probably won't be worthwhile
   private static long DEFAULT_SYNC_MIN_GZIP_BYTES = 256;
+
+  // counter
+  private static enum CounterType { TOTAL, SKIPPED, ERR_LEN_NOT_36, ERR_NO_LETTER, ERR_UNKNOWN, REQUEST_SENT, ERR_RESPONE };
+  private static EnumMap<CounterType, Integer> counter = new EnumMap<CounterType, Integer>(CounterType.class);
+
+  private static void addCounter(CounterType countType){
+    addCounter(countType, 1);
+  }
+  private static void addCounter(CounterType countType, int count){
+    Integer oldValue = counter.get(countType);
+    if (oldValue == null) {
+      oldValue = 0;
+    }
+    counter.put(countType, oldValue + count);
+  }
 
   public static void main(String[] argv) throws IOException {
     // parse command line parameters
@@ -37,8 +55,10 @@ public class Main {
       System.exit(-1);
     }
 
-    String fileName = args.file;
-    Long userListId = args.userListId;
+    final String fileName = args.file;
+    final Long userListId = args.userListId;
+    final int UPLOAD_BATCH_COUNT = args.batchSize;
+    final String skip = args.skip;
 
     // read file
     BufferedReader stream = null;
@@ -47,35 +67,86 @@ public class Main {
 
       List<UserDataOperation> opList = new ArrayList<UserDataOperation>(UPLOAD_BATCH_COUNT);
       String line;
-      int totalCount = 0;
 
-      System.out.println("begin processing...");
+      logger.info("--------------------------------------------------------------------------------------");
+      logger.info("Begin processing...");
+      logger.info("File name: {}", fileName);
+      logger.info("User list id: {}", userListId);
+      logger.info("Batch size: {}", UPLOAD_BATCH_COUNT);
+      logger.info("Skip: {}", skip);
+      logger.info("--------------------------------------------------------------------------------------");
+
       while ((line = stream.readLine()) != null) {
+        addCounter(CounterType.TOTAL);
+
         // process a single line
         String[] arr = line.split(SEPARATOR);
-        UserDataOperation op = UserDataOperation.newBuilder()
-            .setUserId(arr[0])
-            .setUserListId(userListId)
-            .setUserIdType(UserIdType.GOOGLE_USER_ID)
-            .build();
+        UserDataOperation op = null;
+
+        // skip length != 36
+        if (arr[0].length() != 36) {
+          addCounter(CounterType.ERR_LEN_NOT_36);
+          loggerErrorFormat.error("{}, {}", arr[0], "ERR_LEN_NOT_36");
+          continue;
+        }
+
+        if (arr[0].toLowerCase().equals(arr[0])
+            && arr[0].toUpperCase().equals(arr[0])) {
+          addCounter(CounterType.ERR_NO_LETTER);
+          loggerErrorFormat.error("{}, {}", arr[0], "ERR_NO_LETTER");
+          continue;
+        }
+
+        // all lower case means android, upper case means ios
+        if (arr[0].toLowerCase().equals(arr[0])) {
+          if (skip.equalsIgnoreCase("android")) {
+            addCounter(CounterType.SKIPPED);
+            continue;
+          }
+          op = UserDataOperation.newBuilder()
+              .setUserId(arr[0])
+              .setUserListId(userListId)
+              .setUserIdType(UserIdType.ANDROID_ADVERTISING_ID)
+              .build();
+        } else if (arr[0].toUpperCase().equals(arr[0])) {
+          if (skip.equalsIgnoreCase("ios")) {
+            addCounter(CounterType.SKIPPED);
+            continue;
+          }
+          op = UserDataOperation.newBuilder()
+              .setUserId(arr[0])
+              .setUserListId(userListId)
+              .setUserIdType(UserIdType.IDFA)
+              .build();
+        }
+        if (op == null) {
+          // don't know why we're here, just record
+          addCounter(CounterType.ERR_UNKNOWN);
+          continue;
+        }
+
         opList.add(op);
-        ++totalCount;
+
         if (opList.size() >= UPLOAD_BATCH_COUNT) {
           // send a batch
           sendRequest(opList);
-          System.out.printf("%d sent. \r\n", totalCount);
         }
       }
       if (opList.size() > 0) {
         // send last batch
         sendRequest(opList);
-        System.out.printf("%d sent. \r\n", totalCount);
       }
     } finally {
       if (stream != null) {
         stream.close();
       }
-      System.out.println("done.");
+      // final report
+      logger.info("--------------------------------------------------------------------------------------");
+      for(Map.Entry<CounterType, Integer> entry : counter.entrySet()) {
+        logger.info("{}: {}", entry.getKey(), entry.getValue());
+      }
+      logger.info("SUCCESS: {}", counter.get(CounterType.REQUEST_SENT) - counter.get(CounterType.ERR_RESPONE));
+      logger.info("--------------------------------------------------------------------------------------");
     }
   }
 
@@ -91,18 +162,25 @@ public class Main {
     post.setEntity(reqEntity);
 
     HttpResponse response = httpClient.execute(post);
+    addCounter(CounterType.REQUEST_SENT, opList.size());
+
     if (response.getStatusLine().getStatusCode() != 200) {
-      throw new RuntimeException("Failed : HTTP error code : "
-          + response.getStatusLine().getStatusCode());
+      // response error
+      addCounter(CounterType.ERR_RESPONE, opList.size());
+      logger.info("Batch size: {}, HTTP error code: {}, error count: {}",
+          opList.size(), response.getStatusLine().getStatusCode(), opList.size());
+    } else {
+      // get response
+      HttpEntity responseEntity = response.getEntity();
+      UpdateUsersDataResponse dataResponse = UpdateUsersDataResponse.parseFrom(responseEntity.getContent());
+
+      addCounter(CounterType.ERR_RESPONE, dataResponse.getErrorsCount());
+
+      logger.info("Batch size: {}, status: {}, error count: {}", opList.size(), dataResponse.getStatus(), dataResponse.getErrorsCount());
+      for (ErrorInfo error : dataResponse.getErrorsList()) {
+        loggerErrorResponse.error("{}, {}", error.getUserId(), error.getErrorCode());
+      }
     }
-
-    // get response
-    HttpEntity responseEntity = response.getEntity();
-    UpdateUsersDataResponse dataResponse = UpdateUsersDataResponse.parseFrom(responseEntity.getContent());
-
-    System.out.printf("-- Response.status = %s. \r\n", dataResponse.getStatus());
-    System.out.printf("-- Response.errorCount = %d. \r\n", dataResponse.getErrorsCount());
-    System.out.printf("-- Response.errors = %s. \r\n", dataResponse.getErrorsList().toString());
 
     // clear operation list
     opList.clear();
@@ -126,4 +204,5 @@ public class Main {
     entity.setContentType("application/octet-stream");
     return entity;
   }
+
 }

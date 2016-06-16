@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{yyyy/MM/dd HH:mm:ss.SSS} - %msg%n"/>
+    </Console>
+    <File name="ProcessLog" fileName="logs/${date:yyyy-MM-dd_HH:mm:ss}.log">
+      <PatternLayout pattern="%msg%n"/>
+    </File>
+    <File name="ErrorFormat" fileName="logs/${date:yyyy-MM-dd_HH:mm:ss}_err_format.log">
+      <PatternLayout pattern="%msg%n"/>
+    </File>
+    <File name="ErrorResponse" fileName="logs/${date:yyyy-MM-dd_HH:mm:ss}_err_response.log">
+      <PatternLayout pattern="%msg%n"/>
+    </File>
+  </Appenders>
+  <Loggers>
+    <Root level="info">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="ProcessLog"/>
+    </Root>
+    <Logger name="Error.Format" level="info" additivity="false">
+      <AppenderRef ref="ErrorFormat" />
+    </Logger>
+    <Logger name="Error.Response" level="info" additivity="false">
+      <AppenderRef ref="ErrorResponse" />
+    </Logger>
+  </Loggers>
+</Configuration>
