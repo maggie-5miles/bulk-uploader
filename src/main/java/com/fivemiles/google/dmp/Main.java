@@ -167,8 +167,8 @@ public class Main {
     if (response.getStatusLine().getStatusCode() != 200) {
       // response error
       addCounter(CounterType.ERR_RESPONE, opList.size());
-      logger.info("Batch size: {}, HTTP error code: {}, error count: {}",
-          opList.size(), response.getStatusLine().getStatusCode(), opList.size());
+      logger.info("Batch size: {}, HTTP error code: {}, error count: {}. Total {} processed",
+          opList.size(), response.getStatusLine().getStatusCode(), opList.size(), counter.get(CounterType.TOTAL));
     } else {
       // get response
       HttpEntity responseEntity = response.getEntity();
@@ -176,7 +176,8 @@ public class Main {
 
       addCounter(CounterType.ERR_RESPONE, dataResponse.getErrorsCount());
 
-      logger.info("Batch size: {}, status: {}, error count: {}", opList.size(), dataResponse.getStatus(), dataResponse.getErrorsCount());
+      logger.info("Batch size: {}, status: {}, error count: {}. Total: {} processed",
+          opList.size(), dataResponse.getStatus(), dataResponse.getErrorsCount(), counter.get(CounterType.TOTAL));
       for (ErrorInfo error : dataResponse.getErrorsList()) {
         loggerErrorResponse.error("{}, {}", error.getUserId(), error.getErrorCode());
       }

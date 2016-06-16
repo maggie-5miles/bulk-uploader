@@ -4,7 +4,7 @@
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout pattern="%d{yyyy/MM/dd HH:mm:ss.SSS} - %msg%n"/>
     </Console>
-    <File name="ProcessLog" fileName="logs/${date:yyyy-MM-dd_HH:mm:ss}.log">
+    <File name="ProcessLog" fileName="logs/${date:yyyy-MM-dd_HH:mm:ss}_${sys:userListFile}.log">
       <PatternLayout pattern="%msg%n"/>
     </File>
     <File name="ErrorFormat" fileName="logs/${date:yyyy-MM-dd_HH:mm:ss}_err_format.log">
