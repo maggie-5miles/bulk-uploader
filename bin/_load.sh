@@ -16,5 +16,5 @@ if [ "$5" != "" ]; then
   skip="-s $5"
 fi
 # set -x
-java -Dlog4j.configurationFile=./log4j2.xml -DdateDir=$date_dir -DuserListFile=$file_name -jar bulk-uploader-1.0-jar-with-dependencies.jar \
+java -Dlog4j.configurationFile=./log4j2.xml -DdateDir=$date_dir -DuserListFile=$file_name -jar target/bulk-uploader-1.0.jar \
   -f /fivemiles/scripts/bulk-uploader/s3data/$process_date/$file_name -l $list_id $batch_size $skip

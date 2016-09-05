@@ -1,6 +1,3 @@
-
-385941692 Cars no visit in 7 days
-
 # googleads-java-lib 项目根目录
 mvn compile
 mvn install
@@ -16,9 +13,10 @@ mvn exec:java -Dexec.mainClass="ddp.axis.v201603.dmpuserservice.Mutate" -Dexec.a
 
 # bulk-uploader项目根目录
 mvn package
-scp target/bulk-uploader-1.0-jar-with-dependencies.jar ads-staging:/fivemiles/scripts/bulk-uploader/
-scp src/main/resources/log4j2.xml ads-staging:/fivemiles/scripts/bulk-uploader/
-scp *.sh ads-staging:/fivemiles/scripts/bulk-uploader/
+bin/deploy.sh
+#scp target/bulk-uploader-1.0-jar-with-dependencies.jar ads-staging:/fivemiles/scripts/bulk-uploader/
+#scp src/main/resources/log4j2.xml ads-staging:/fivemiles/scripts/bulk-uploader/
+#scp *.sh ads-staging:/fivemiles/scripts/bulk-uploader/
 
 # load all
 process_date=2016/08/21
