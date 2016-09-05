@@ -4,25 +4,34 @@
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout pattern="%d{yyyy/MM/dd HH:mm:ss.SSS} - %msg%n"/>
     </Console>
-    <File name="ProcessLog" fileName="logs/${date:yyyy-MM-dd_HH:mm:ss}_${sys:userListFile}.log">
+    <File name="ProcessError" fileName="logs/${sys:dateDir}/error.log">
+      <PatternLayout pattern="%d{yyyy/MM/dd HH:mm:ss.SSS} - %msg%n"/>
+    </File>
+    <File name="ProcessLog" fileName="logs/${sys:dateDir}/${sys:userListFile}.log">
       <PatternLayout pattern="%msg%n"/>
     </File>
-    <File name="ErrorFormat" fileName="logs/${date:yyyy-MM-dd_HH:mm:ss}_err_format.log">
+    <File name="ErrorFormat" fileName="logs/${sys:dateDir}/${sys:userListFile}_err_format.log">
       <PatternLayout pattern="%msg%n"/>
     </File>
-    <File name="ErrorResponse" fileName="logs/${date:yyyy-MM-dd_HH:mm:ss}_err_response.log">
+    <File name="ErrorResponse" fileName="logs/${sys:dateDir}/${sys:userListFile}_err_response.log">
       <PatternLayout pattern="%msg%n"/>
     </File>
+    <Raven name="Sentry">
+      <dsn>
+        https://b4842bd81964446e85b96e31ff1eb135:4e6e7f17b6f34a179cfc4a5b6c27969f@sentry.io/96087?options
+      </dsn>
+    </Raven>
   </Appenders>
   <Loggers>
     <Root level="info">
-      <AppenderRef ref="Console"/>
-      <AppenderRef ref="ProcessLog"/>
+      <AppenderRef ref="ProcessLog" level="info" />
+      <AppenderRef ref="ProcessError" level="error" />
+      <AppenderRef ref="Sentry" level="error" />
     </Root>
-    <Logger name="Error.Format" level="info" additivity="false">
+    <Logger name="Error.Format" additivity="false">
       <AppenderRef ref="ErrorFormat" />
     </Logger>
-    <Logger name="Error.Response" level="info" additivity="false">
+    <Logger name="Error.Response" additivity="false">
       <AppenderRef ref="ErrorResponse" />
     </Logger>
   </Loggers>

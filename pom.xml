@@ -65,5 +65,15 @@
       <artifactId>log4j-core</artifactId>
       <version>2.5</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <version>2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.getsentry.raven</groupId>
+      <artifactId>raven-log4j2</artifactId>
+      <version>7.6.0</version>
+    </dependency>
   </dependencies>
 </project>

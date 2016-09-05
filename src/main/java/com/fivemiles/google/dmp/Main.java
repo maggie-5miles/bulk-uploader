@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
+import java.lang.Thread.UncaughtExceptionHandler;
 
 /**
  * Created by ying on 19/4/16.
@@ -46,6 +47,13 @@ public class Main {
   }
 
   public static void main(String[] argv) throws IOException {
+    // log all uncaught exception
+    Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+      public void uncaughtException(Thread t, Throwable e) {
+        logger.error("Something is wrong", e);
+      }
+    });
+
     // parse command line parameters
     Args args = new Args();
     JCommander jCommander = new JCommander(args, argv);
@@ -136,17 +144,19 @@ public class Main {
         // send last batch
         sendRequest(opList);
       }
+    } catch (IOException e) {
+      logger.error("Something is wrong", e);
     } finally {
       if (stream != null) {
         stream.close();
+        // final report
+        logger.info("--------------------------------------------------------------------------------------");
+        for(Map.Entry<CounterType, Integer> entry : counter.entrySet()) {
+          logger.info("{}: {}", entry.getKey(), entry.getValue());
+        }
+        logger.info("SUCCESS: {}", counter.get(CounterType.REQUEST_SENT) - counter.get(CounterType.ERR_RESPONE));
+        logger.info("--------------------------------------------------------------------------------------");
       }
-      // final report
-      logger.info("--------------------------------------------------------------------------------------");
-      for(Map.Entry<CounterType, Integer> entry : counter.entrySet()) {
-        logger.info("{}: {}", entry.getKey(), entry.getValue());
-      }
-      logger.info("SUCCESS: {}", counter.get(CounterType.REQUEST_SENT) - counter.get(CounterType.ERR_RESPONE));
-      logger.info("--------------------------------------------------------------------------------------");
     }
   }
 
