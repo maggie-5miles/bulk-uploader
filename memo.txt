@@ -17,24 +17,8 @@ mvn exec:java -Dexec.mainClass="ddp.axis.v201603.dmpuserservice.Mutate" -Dexec.a
 # bulk-uploader项目根目录
 mvn package
 scp target/bulk-uploader-1.0-jar-with-dependencies.jar ads-staging:/fivemiles/scripts/bulk-uploader/
-
-#scp src/main/resources/log4j2.xml ads-staging:/fivemiles/scripts/bulk-uploader/
-
-#ssh ads-staging
-cd /fivemiles/scripts/bulk-uploader/
-nohup ./run.sh no_visit_7.txt 385941707  > nohup.out1 2>&1 &
-nohup ./run.sh no_visit_14.txt 393821179 > nohup.out2 2>&1 &
-nohup ./run.sh no_visit_30.txt 395723694 > nohup.out3 2>&1 &
-
-# seperate ios and android list
-nohup ./run.sh no_visit_7.txt 398954357 2000 android  > nohup.out1 2>&1 &
-nohup ./run.sh no_visit_7.txt 398954219 2000 ios  > nohup.out2 2>&1 &
-
-nohup ./run.sh no_visit_14.txt 398535967 2000 android  > nohup.out3 2>&1 &
-nohup ./run.sh no_visit_14.txt 398954441 2000 ios  > nohup.out4 2>&1 &
-
-nohup ./run.sh no_visit_30.txt 398536063 2000 android  > nohup.out5 2>&1 &
-nohup ./run.sh no_visit_30.txt 398536213 2000 ios  > nohup.out6 2>&1 &
+scp src/main/resources/log4j2.xml ads-staging:/fivemiles/scripts/bulk-uploader/
+scp *.sh ads-staging:/fivemiles/scripts/bulk-uploader/
 
 # load all
 process_date=2016/08/21
