@@ -6,9 +6,14 @@ if [ $# -eq 0 ]; then
 fi
 
 cd `dirname $0`
-
 process_date=$1
-./s3sync.sh $process_date
+
+set -xe
+
+# sync
+aws s3 sync s3://5miles-ads/users/${process_date} s3data/${process_date} --delete
+# remove old
+find s3data/ -mindepth 3 -type d -ctime +10 | xargs rm -rf
 
 gzip -d s3data/$process_date/*.gz
 
