@@ -6,9 +6,10 @@ if [ $# -eq 0 ]; then
 fi
 
 cd `dirname $0`
-./s3sync.sh
 
 process_date=$1
+./s3sync.sh $process_date
+
 gzip -d s3data/$process_date/*.gz
 
 mkdir -p logs/${process_date//\//}
