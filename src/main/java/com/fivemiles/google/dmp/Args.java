@@ -15,8 +15,8 @@ public class Args {
   @Parameter(names = { "--batch-size", "-b" }, required = false, description = "The batch size")
   int batchSize = 2000;
 
-  @Parameter(names = { "--skip", "-s" }, required = false, description = "The user type to skip")
-  String skip = "";
+  @Parameter(names = { "--skip", "-s" }, required = false, description = "Skip no change data")
+  boolean skip = true;
 
   @Parameter(names = { "--help", "-h" }, help = true, description = "Display help information")
   boolean help = false;
