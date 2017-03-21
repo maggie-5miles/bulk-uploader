@@ -66,7 +66,7 @@ public class Main {
     final String fileName = args.file;
     final Long userListId = args.userListId;
     final int UPLOAD_BATCH_COUNT = args.batchSize;
-    final String skip = args.skip;
+    final boolean skip = args.skip;
 
     // read file
     BufferedReader stream = null;
@@ -89,42 +89,47 @@ public class Main {
 
         // process a single line
         String[] arr = line.split(SEPARATOR);
+        if (arr.length < 1) {
+          continue;
+        }
+        String userId = arr[0];
+        Boolean isDelete = (arr.length > 1) && arr[1].equals("-1");
+        Boolean noChange = (arr.length > 1) && arr[1].equals("0");
+
+        if (skip && noChange) {
+          addCounter(CounterType.SKIPPED);
+          continue;
+        }
+
         UserDataOperation op = null;
 
         // skip length != 36
-        if (arr[0].length() != 36) {
+        if (userId.length() != 36) {
           addCounter(CounterType.ERR_LEN_NOT_36);
-          loggerErrorFormat.error("{}, {}", arr[0], "ERR_LEN_NOT_36");
+          loggerErrorFormat.error("{}, {}", userId, "ERR_LEN_NOT_36");
           continue;
         }
 
-        if (arr[0].toLowerCase().equals(arr[0])
-            && arr[0].toUpperCase().equals(arr[0])) {
+        if (userId.toLowerCase().equals(userId)
+            && userId.toUpperCase().equals(userId)) {
           addCounter(CounterType.ERR_NO_LETTER);
-          loggerErrorFormat.error("{}, {}", arr[0], "ERR_NO_LETTER");
+          loggerErrorFormat.error("{}, {}", userId, "ERR_NO_LETTER");
           continue;
         }
-
-        // all lower case means android, upper case means ios
-        if (arr[0].toLowerCase().equals(arr[0])) {
-          if (skip.equalsIgnoreCase("android")) {
-            addCounter(CounterType.SKIPPED);
-            continue;
-          }
+        File f = new File(fileName);
+        if (f.getName().contains("android")) {
           op = UserDataOperation.newBuilder()
-              .setUserId(arr[0])
+              .setUserId(userId)
               .setUserListId(userListId)
               .setUserIdType(UserIdType.ANDROID_ADVERTISING_ID)
+              .setDelete(isDelete)
               .build();
-        } else if (arr[0].toUpperCase().equals(arr[0])) {
-          if (skip.equalsIgnoreCase("ios")) {
-            addCounter(CounterType.SKIPPED);
-            continue;
-          }
+        } else if (f.getName().contains("ios")) {
           op = UserDataOperation.newBuilder()
-              .setUserId(arr[0])
+              .setUserId(userId)
               .setUserListId(userListId)
               .setUserIdType(UserIdType.IDFA)
+              .setDelete(isDelete)
               .build();
         }
         if (op == null) {

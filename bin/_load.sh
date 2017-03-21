@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ $# -eq 0 ]; then
   echo "No arguments supplied. "
-  echo 'Usage : Script <process_date> <file_name> <list_id> [<batch_size> <skip:ios|android>]'
+  echo 'Usage : Script <process_date> <file_name> <list_id> [<batch_size> <skip>]'
   exit 1
 fi
 
@@ -13,7 +13,7 @@ if [ "$4" != "" ]; then
   batch_size="-b $4"
 fi
 if [ "$5" != "" ]; then
-  skip="-s $5"
+  skip="-s"
 fi
 # set -x
 java -Dlog4j.configurationFile=./log4j2.xml -DdateDir=$date_dir -DuserListFile=$file_name -jar target/bulk-uploader-1.0.jar \

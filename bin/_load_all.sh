@@ -48,6 +48,14 @@ set -xe
 ./_load.sh $process_date 	post_or_edit_item_users_ios.csv	409632045	
 ./_load.sh $process_date 	register_android.csv	408288332	
 ./_load.sh $process_date 	register_ios.csv	408295418	
+./_load.sh $process_date 	no_active_users_ios_7.csv	467359815
+./_load.sh $process_date 	no_active_users_android_7.csv	464470493
+./_load.sh $process_date 	no_active_users_ios_14.csv	464305144
+./_load.sh $process_date 	no_active_users_android_14.csv	464470502
+./_load.sh $process_date 	no_active_users_ios_30.csv	464305129
+./_load.sh $process_date 	no_active_users_android_30.csv	464470505
+./_load.sh $process_date 	no_active_users_ios_60.csv	467359728
+./_load.sh $process_date 	no_active_users_android_60.csv	467359791
 
 set +x
 date "+%Y-%m-%d %H:%M:%S"
