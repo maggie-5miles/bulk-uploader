@@ -95,6 +95,7 @@ public class Main {
         String userId = arr[0];
         Boolean isDelete = (arr.length > 1) && arr[1].equals("-1");
         Boolean noChange = (arr.length > 1) && arr[1].equals("0");
+
         long timeAdded = 0;
         if (arr.length > 2) {
           try {
