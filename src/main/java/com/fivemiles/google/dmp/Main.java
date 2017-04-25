@@ -32,7 +32,7 @@ public class Main {
   private static long DEFAULT_SYNC_MIN_GZIP_BYTES = 256;
 
   // counter
-  private static enum CounterType { TOTAL, SKIPPED, ERR_LEN_NOT_36, ERR_NO_LETTER, ERR_UNKNOWN, REQUEST_SENT, ERR_RESPONE };
+  private static enum CounterType { TOTAL, SKIPPED, ERR_TIME_FORMAT, ERR_LEN_NOT_36, ERR_NO_LETTER, ERR_UNKNOWN, REQUEST_SENT, ERR_RESPONE };
   private static EnumMap<CounterType, Integer> counter = new EnumMap<CounterType, Integer>(CounterType.class);
 
   private static void addCounter(CounterType countType){
@@ -95,6 +95,15 @@ public class Main {
         String userId = arr[0];
         Boolean isDelete = (arr.length > 1) && arr[1].equals("-1");
         Boolean noChange = (arr.length > 1) && arr[1].equals("0");
+        long timeAdded = 0;
+        if (arr.length > 2) {
+          try {
+            timeAdded = Long.parseLong(arr[2]);
+          } catch (NumberFormatException nfe) {
+            addCounter(CounterType.ERR_TIME_FORMAT);
+            loggerErrorFormat.error("{}:{}, {}", userId, arr[2], "ERR_TIME_FORMAT");
+          }
+        }
 
         if (skip && noChange) {
           addCounter(CounterType.SKIPPED);
@@ -123,6 +132,7 @@ public class Main {
               .setUserListId(userListId)
               .setUserIdType(UserIdType.ANDROID_ADVERTISING_ID)
               .setDelete(isDelete)
+              .setTimeAddedToUserList(timeAdded)
               .build();
         } else if (f.getName().contains("ios")) {
           op = UserDataOperation.newBuilder()
@@ -130,6 +140,7 @@ public class Main {
               .setUserListId(userListId)
               .setUserIdType(UserIdType.IDFA)
               .setDelete(isDelete)
+              .setTimeAddedToUserList(timeAdded)
               .build();
         }
         if (op == null) {

@@ -13,7 +13,7 @@ public class Args {
   Long userListId;
 
   @Parameter(names = { "--batch-size", "-b" }, required = false, description = "The batch size")
-  int batchSize = 2000;
+  int batchSize = 1000;
 
   @Parameter(names = { "--skip", "-s" }, required = false, description = "Skip no change data")
   boolean skip = false;
