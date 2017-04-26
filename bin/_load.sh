@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ $# -eq 0 ]; then
   echo "No arguments supplied. "
-  echo 'Usage : Script <process_date> <file_name> <list_id> [<batch_size>] [no_skip]'
+  echo 'Usage : Script <process_date> <file_name> <list_id> [no_skip] [<batch_size>]'
   exit 1
 fi
 
@@ -9,14 +9,15 @@ process_date=$1
 date_dir=${process_date//\//}
 file_name=$2
 list_id=$3
-if [ "$4" != "" ]; then
-  batch_size="-b $4"
-fi
 
 # skip no change records, always do full load on Sunday
 w=`date +%w`
-if [ "$w" != "0" ] && [ "$5" != "no_skip" ]; then
+if [ "$w" != "0" ] && [ "$4" != "no_skip" ]; then
   skip="-s"
+fi
+
+if [ "$5" != "" ]; then
+  batch_size="-b $5"
 fi
 
 # set -x
